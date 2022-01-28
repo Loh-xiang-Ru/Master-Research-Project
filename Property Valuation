@@ -1,0 +1,189 @@
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(caret)
+library(readr)
+library(writexl)
+library(e1071)
+library(Metrics)
+library(class)
+library(knn.covertree)
+library(cluster)
+library(randomForest)
+library(caret)
+library(gbm)
+library(xgboost)
+library(glmnet)
+library(cowplot)
+
+
+
+data1 <- read_excel("D:/Desktop/FYP/1/Train.xlsx")
+data2 <- read_excel("D:/Desktop/FYP/1/Test.xlsx")
+x_train <- data1[ , -c(1)]
+x_test <- data2[ , -c(1)]
+
+
+d1 <- read_excel("D:/Desktop/FYP/1/p5.xlsx")
+d2 <- read_excel("D:/Desktop/FYP/1/p6.xlsx")
+
+r11 <- R2(data1$PricePerSize, d1$average)
+mse11 <- mse(data1$PricePerSize, d1$average)
+rmse11 <- rmse(data1$PricePerSize, d1$average)
+mae11 <- mae(data1$PricePerSize, d1$average)
+
+r1a1 <- R2(data2$PricePerSize, d2$average)
+mse1a1 <- mse(data2$PricePerSize, d2$average)
+rmse1a1 <- rmse(data2$PricePerSize, d2$average)
+mae1a1 <- mae(data2$PricePerSize, d2$average)
+
+
+x11 <- c(r11, mse11, rmse11, mae11)
+x11a <- c(r1a1, mse1a1, rmse1a1, mae1a1)
+x11
+x11a
+
+#Linear
+model1 <- lm(PricePerSize~., data=data1)
+summary(model1)
+
+prediction1 <- predict(model1, x_train)
+prediction1a <- predict(model1, x_test)
+
+r1 <- R2(data1$PricePerSize, prediction1)
+mse1 <- mse(data1$PricePerSize, prediction1)
+rmse1 <- rmse(data1$PricePerSize, prediction1)
+mae1 <- mae(data1$PricePerSize, prediction1)
+
+r1a <- R2(data2$PricePerSize, prediction1a)
+mse1a <- mse(data2$PricePerSize, prediction1a)
+rmse1a <- rmse(data2$PricePerSize, prediction1a)
+mae1a <- mae(data2$PricePerSize, prediction1a)
+
+x1 <- c(r1, mse1, rmse1, mae1)
+x1a <- c(r1a, mse1a, rmse1a, mae1a)
+x1
+x1a
+
+#SVM
+model2 <- svm(PricePerSize~., data=data1)
+summary(model2)
+
+prediction2 <- predict(model2, x_train)
+prediction2a <- predict(model2, x_test)
+
+r2 <- R2(data1$PricePerSize, prediction2)
+mse2 <- mse(data1$PricePerSize, prediction2)
+rmse2 <- rmse(data1$PricePerSize, prediction2)
+mae2 <- mae(data1$PricePerSize, prediction2)
+
+r2a <- R2(data2$PricePerSize, prediction2a)
+mse2a <- mse(data2$PricePerSize, prediction2a)
+rmse2a <- rmse(data2$PricePerSize, prediction2a)
+mae2a <- mae(data2$PricePerSize, prediction2a)
+
+x2 <- c(r2, mse2, rmse2, mae2)
+x2a <- c(r2a, mse2a, rmse2a, mae2a)
+x2
+x2a
+
+#randomForest
+model3 <- randomForest(PricePerSize~., data1, ntree=500)
+summary(model3)
+prediction3 <- predict(model3, x_train)
+prediction3a <- predict(model3, x_test)
+
+r3 <- R2(data1$PricePerSize, prediction3)
+mse3 <- mse(data1$PricePerSize, prediction3)
+rmse3 <- rmse(data1$PricePerSize, prediction3)
+mae3 <- mae(data1$PricePerSize, prediction3)
+
+r3a <- R2(data2$PricePerSize, prediction3a)
+mse3a <- mse(data2$PricePerSize, prediction3a)
+rmse3a <- rmse(data2$PricePerSize, prediction3a)
+mae3a <- mae(data2$PricePerSize, prediction3a)
+
+x3 <- c(r3, mse3, rmse3, mae3)
+x3a <- c(r3a, mse3a, rmse3a, mae3a)
+x3
+x3a
+
+#GBM
+fitControl <- trainControl(method = "repeatedcv", number = 4, repeats = 4)
+model4 <- train(PricePerSize~., data = data1, method = "gbm",trControl = fitControl, verbose = FALSE)
+prediction4 <- predict(model4, x_train)
+prediction4a <- predict(model4, x_test)
+
+r4 <- R2(data1$PricePerSize, prediction4)
+mse4 <- mse(data1$PricePerSize, prediction4)
+rmse4 <- rmse(data1$PricePerSize, prediction4)
+mae4 <- mae(data1$PricePerSize, prediction4)
+
+r4a <- R2(data2$PricePerSize, prediction4a)
+mse4a <- mse(data2$PricePerSize, prediction4a)
+rmse4a <- rmse(data2$PricePerSize, prediction4a)
+mae4a <- mae(data2$PricePerSize, prediction4a)
+
+x4 <- c(r4, mse4, rmse4, mae4)
+x4a <- c(r4a, mse4a, rmse4a, mae4a)
+x4
+x4a
+
+# p1 <- cbind(prediction1, prediction1a, prediction2, prediction2a, prediction3, prediction3a, prediction4, prediction4a)
+write_xlsx(data.frame(p1),"D:/Desktop/FYP/1/p1.xlsx")
+
+rec1 <- read_excel("D:/Desktop/FYP/1/p1.xlsx")
+rec2 <- round(rec1)
+rec2[rec2 < 0] <- 0
+write_xlsx(rec2,"D:/Desktop/FYP/1/p3.xlsx")
+
+p3 <- read_excel("D:/Desktop/FYP/1/p3.xlsx")
+
+R1 <- R2(data1$PricePerSize, p3$prediction1)
+Mse1 <- mse(data1$PricePerSize, p3$prediction1)
+Rmse1 <- rmse(data1$PricePerSize, p3$prediction1)
+Mae1 <- mae(data1$PricePerSize, p3$prediction1)
+
+R1a <- R2(data2$PricePerSize, p3$prediction1a)
+Mse1a <- mse(data2$PricePerSize, p3$prediction1a)
+Rmse1a <- rmse(data2$PricePerSize, p3$prediction1a)
+Mae1a <- mae(data2$PricePerSize, p3$prediction1a)
+
+X1 <- c(R1, Mse1, Rmse1, Mae1)
+X1a <- c(R1a, Mse1a, Rmse1a, Mae1a)
+X1
+X1a
+
+
+R2 <- R2(data1$PricePerSize, p3$prediction1)
+Mse2 <- mse(data1$PricePerSize, p3$prediction1)
+Rmse2 <- rmse(data1$PricePerSize, p3$prediction1)
+Mae2 <- mae(data1$PricePerSize, p3$prediction1)
+
+R2a <- R2(data2$PricePerSize, p3$prediction1a)
+Mse2a <- mse(data2$PricePerSize, p3$prediction1a)
+Rmse2a <- rmse(data2$PricePerSize, p3$prediction1a)
+Mae2a <- mae(data2$PricePerSize, p3$prediction1a)
+
+R3 <- R2(data1$PricePerSize, p3$prediction1)
+Mse3 <- mse(data1$PricePerSize, p3$prediction1)
+Rmse3 <- rmse(data1$PricePerSize, p3$prediction1)
+Mae3 <- mae(data1$PricePerSize, p3$prediction1)
+
+R3a <- R2(data2$PricePerSize, p3$prediction1a)
+Mse3a <- mse(data2$PricePerSize, p3$prediction1a)
+Rmse3a <- rmse(data2$PricePerSize, p3$prediction1a)
+Mae3a <- mae(data2$PricePerSize, p3$prediction1a)
+
+# R4 <- R2(data1$PricePerSize, p3$prediction1)
+Mse4 <- mse(data1$PricePerSize, p3$prediction1)
+Rmse4 <- rmse(data1$PricePerSize, p3$prediction1)
+Mae4 <- mae(data1$PricePerSize, p3$prediction1)
+
+R4a <- R2(data2$PricePerSize, p3$prediction1a)
+Mse4a <- mse(data2$PricePerSize, p3$prediction1a)
+Rmse4a <- rmse(data2$PricePerSize, p3$prediction1a)
+Mae4a <- mae(data2$PricePerSize, p3$prediction1a)
+
+```
